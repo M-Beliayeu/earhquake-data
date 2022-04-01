@@ -8,8 +8,6 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- Timezone setting
 -- -----------------------------------------------------
 
-
-
 -- -----------------------------------------------------
 -- Schema quakes
 -- -----------------------------------------------------
@@ -63,6 +61,7 @@ DROP TABLE IF EXISTS `quakes`.`MagnitudeTypes`;
 
 CREATE TABLE IF NOT EXISTS `quakes`.`MagnitudeTypes` (
   `id` TINYINT NOT NULL AUTO_INCREMENT,
+  `id_type` TINYINT NOT NULL,
   `name` VARCHAR(5) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE)
@@ -76,9 +75,10 @@ DROP TABLE IF EXISTS `quakes`.`Agencies`;
 
 CREATE TABLE IF NOT EXISTS `quakes`.`Agencies` (
   `id` SMALLINT NOT NULL AUTO_INCREMENT,
-  `name` CHAR(2) NOT NULL,
+  `abbreviation` VARCHAR(45) NOT NULL,
+  `full_name` VARCHAR(250) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE)
+  UNIQUE INDEX `abbreviation_UNIQUE` (`abbreviation` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -155,81 +155,17 @@ ENGINE = InnoDB;
 -- Table `quakes`.`Contributed`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `quakes`.`Contributed` (
-  `Agency` SMALLINT NOT NULL,
-  `Event` INT NOT NULL,
-  PRIMARY KEY (`Agency`, `Event`),
-  INDEX `fk_Contributed_Events_idx` (`Event` ASC) VISIBLE,
+  `agency` SMALLINT NOT NULL,
+  `event_global_id` INT NOT NULL,
+  PRIMARY KEY (`agency`, `event_global_id`),
   CONSTRAINT `fk_Contributed_Agencies`
-    FOREIGN KEY (`Agency`)
+    FOREIGN KEY (`agency`)
     REFERENCES `quakes`.`Agencies` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  CONSTRAINT `fk_Contributed_Events`
-    FOREIGN KEY (`Event`)
-    REFERENCES `quakes`.`Events` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 USE `quakes` ;
-
-
--- -----------------------------------------------------
--- Populate table `quakes`.`MagnitudeTypes`
--- -----------------------------------------------------
-INSERT INTO `quakes`.`MagnitudeTypes`(`name`) VALUES
-	("md"),
-	("ml"),
-	("ms"),
-	("mw"),
-	("me"),
-	("mi"),
-	("mb"),
-	("mlg")
-;
-
-
--- -----------------------------------------------------
--- Populate table `quakes`.`MagnitudeTypes`
--- -----------------------------------------------------
-INSERT INTO `quakes`.`Alerts`(`name`) VALUES
-	("green"),
-	("yellow"),
-	("orange"),
-	("red")
-;
-
-
--- -----------------------------------------------------
--- Populate table `quakes`.`Status`
--- -----------------------------------------------------
-INSERT INTO `quakes`.`Status`(`name`) VALUES
-	("automatic"),
-	("reviewed"),
-	("deleted")
-;
-
-
--- -----------------------------------------------------
--- Populate table `quakes`.`Agencies`
--- -----------------------------------------------------
-INSERT INTO `quakes`.`Agencies`(`name`) VALUES
-	("ak"),
-	("at"),
-	("ci"),
-	("hv"),
-	("ld"),
-	("mb"),
-	("nc"),
-	("nm"),
-	("nn"),
-	("pr"),
-	("pt"),
-	("se"),
-	("us"),
-	("uu"),
-	("uw")
-;
 
 
 -- -----------------------------------------------------
@@ -243,10 +179,10 @@ CREATE TABLE IF NOT EXISTS `quakes`.`events_without_meta` (`global_id` INT, `mag
 DROP TABLE IF EXISTS `quakes`.`events_without_meta`;
 USE `quakes`;
 CREATE  OR REPLACE VIEW `events_without_meta` AS 
-SELECT im.global_id AS global_id, e.magnitude AS mag, e.magnitude_type AS mag_type,
+SELECT im.global_id AS global_id, e.magnitude AS mag, m.id_type AS mag_type,
 		e.time AS time, e.timezone_offset AS tz, felt, cdi, mmi,
         a.name AS alert, s.name AS status, e.tsunami AS marine, significance,
-        network, n_stations, dmin, rms, gap, longitude, latitude, depth 
+        ag.abbreviation AS agency, n_stations, dmin, rms, gap, longitude, latitude, depth
 FROM Events e
 	JOIN IdMap im ON e.local_id = im.id
     JOIN Alerts a ON e.alert = a.id
