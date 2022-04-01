@@ -3,3 +3,6 @@
 Pipfile
 Pipfile.lock
 *.drawio
+quakes_book.twb
+.~quakes_book*
+databse_backup.sql

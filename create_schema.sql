@@ -76,7 +76,7 @@ DROP TABLE IF EXISTS `quakes`.`Agencies`;
 CREATE TABLE IF NOT EXISTS `quakes`.`Agencies` (
   `id` SMALLINT NOT NULL AUTO_INCREMENT,
   `abbreviation` VARCHAR(45) NOT NULL,
-  `full_name` VARCHAR(250) NOT NULL,
+  `details` VARCHAR(250) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `abbreviation_UNIQUE` (`abbreviation` ASC) VISIBLE)
 ENGINE = InnoDB;
@@ -91,8 +91,8 @@ CREATE TABLE IF NOT EXISTS `quakes`.`Events` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `magnitude` DECIMAL(3,1) NULL,
   `place` VARCHAR(250) NULL,
-  `time` INT NULL,
-  `updated` INT NULL,
+  `time` DATETIME NULL,
+  `updated` DATETIME NULL,
   `timezone_offset` SMALLINT NULL,
   `url` VARCHAR(250) NULL,
   `detail` VARCHAR(250) NULL,
@@ -154,6 +154,8 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `quakes`.`Contributed`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `quakes`.`Contributed`;
+
 CREATE TABLE IF NOT EXISTS `quakes`.`Contributed` (
   `agency` SMALLINT NOT NULL,
   `event_global_id` INT NOT NULL,
