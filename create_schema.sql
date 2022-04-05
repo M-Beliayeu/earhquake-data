@@ -169,26 +169,7 @@ CREATE
   ),
   EventHelper AS (
     SELECT
-      im.global_id AS id,
-      e.longitude AS longitude,
-      e.latitude as latitude,
-      e.depth as depth,
-      e.magnitude AS magnitude,
-      m.name AS magnitude_type,
-      e.gap AS gap,
-      e.rms AS rms,
-      e.dmin AS dmin,
-      e.mmi AS mmi,
-      e.cdi AS cdi,
-      e.n_stations AS n_stations,
-      e.felt AS felt,
-      e.significance AS significance,
-      e.tsunami AS marine,
-      al.name AS alert,
-      s.name as status,
-      e.time AS time,
-      e.updated AS updated,
-      e.timezone_offset as timezone_offset,
+      e.id AS id,
       aas.abb AS network,
       ROW_NUMBER() OVER(
         PARTITION BY im.global_id
@@ -199,17 +180,13 @@ CREATE
       Events e
       LEFT JOIN IdMap im ON e.local_id = im.id
       LEFT JOIN AgencyAndScore aas ON e.network = aas.id
-      LEFT JOIN Status s ON e.status = s.id
-      LEFT JOIN Alerts al ON e.alert = al.id
-      LEFT JOIN MagIdToName m ON e.magnitude_type = m.id
   )
 SELECT
-  e.id AS id,
   e.longitude AS longitude,
   e.latitude as latitude,
   e.depth as depth,
   e.magnitude AS magnitude,
-  e.magnitude_type AS magnitude_type,
+  m.name AS magnitude_type,
   e.gap AS gap,
   e.rms AS rms,
   e.dmin AS dmin,
@@ -218,17 +195,21 @@ SELECT
   e.n_stations AS n_stations,
   e.felt AS felt,
   e.significance AS significance,
-  e.marine AS marine,
-  e.alert AS alert,
-  e.status as status,
+  e.tsunami AS marine,
+  al.name AS alert,
+  s.name as status,
   e.time AS time,
   e.updated AS updated,
   e.timezone_offset as timezone_offset,
-  e.network AS network
+  eh.network AS network
 FROM
-  EventHelper e
+  EventHelper eh
+    JOIN Events e ON eh.id = e.id
+    LEFT JOIN Status s ON e.status = s.id
+    LEFT JOIN Alerts al ON e.alert = al.id
+    LEFT JOIN MagIdToName m ON e.magnitude_type = m.id
 WHERE
-  e.rankcol = 1;
+  eh.rankcol = 1;
 SET
   SQL_MODE = @OLD_SQL_MODE;
 SET
